@@ -42,3 +42,38 @@ class Videojuego(models.Model):
 
     def num_calificaciones(self):
         return self.calificaciones.count()
+
+class Calificacion(models.Model):
+    PUNTUACIONES = [(i, str(i)) for i in range(1, 11)]
+
+    puntuacion = models.IntegerField(choices=PUNTUACIONES)
+    resena = models.TextField(verbose_name='Reseña')
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    videojuego = models.ForeignKey(
+        Videojuego, on_delete=models.CASCADE, related_name='calificaciones'
+    )
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='calificaciones')
+
+    class Meta:
+        # Un usuario solo puede calificar una vez cada juego
+        unique_together = ('videojuego', 'usuario')
+        ordering = ['-fecha_creacion']
+
+    def __str__(self):
+        return f"{self.usuario.username} → {self.videojuego.titulo}: {self.puntuacion}/10"
+
+
+class Comentario(models.Model):
+    texto = models.TextField()
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    videojuego = models.ForeignKey(
+        Videojuego, on_delete=models.CASCADE, related_name='comentarios'
+    )
+    autor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comentarios')
+
+    class Meta:
+        ordering = ['-fecha_creacion']
+
+    def __str__(self):
+        return f"{self.autor.username} en '{self.videojuego.titulo}'"
+

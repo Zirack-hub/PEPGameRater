@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models import Avg
 from django.urls import reverse
-# Create your models here.
+
 
 class Genero(models.Model):
     nombre = models.CharField(max_length=100)
@@ -14,6 +14,7 @@ class Genero(models.Model):
 
     def __str__(self):
         return self.nombre
+
 
 class Videojuego(models.Model):
     titulo = models.CharField(max_length=200)
@@ -42,6 +43,7 @@ class Videojuego(models.Model):
 
     def num_calificaciones(self):
         return self.calificaciones.count()
+
 
 class Calificacion(models.Model):
     PUNTUACIONES = [(i, str(i)) for i in range(1, 11)]
@@ -76,4 +78,3 @@ class Comentario(models.Model):
 
     def __str__(self):
         return f"{self.autor.username} en '{self.videojuego.titulo}'"
-

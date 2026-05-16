@@ -3,6 +3,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
 
+# Formulario de registro
 class RegistroForm(UserCreationForm):
     email = forms.EmailField(
         required=True,
@@ -13,9 +14,9 @@ class RegistroForm(UserCreationForm):
         model = User
         fields = ['username', 'email', 'password1', 'password2']
 
+    # Aplicamos la clase Bootstrap a todos los campos del formulario
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Aplicar clase Bootstrap a todos los campos
         for field_name, field in self.fields.items():
             field.widget.attrs['class'] = 'form-control'
         self.fields['username'].widget.attrs['placeholder'] = 'Nombre de usuario'

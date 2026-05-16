@@ -4,14 +4,16 @@ from django.contrib import messages
 from .forms import RegistroForm
 
 
+# Vista para registrar un nuevo usuario
 def registro(request):
-    """Vista de registro de nuevos usuarios."""
+    # Si ya está logueado lo mandamos al inicio
     if request.user.is_authenticated:
         return redirect('juegos:lista')
 
     if request.method == 'POST':
         form = RegistroForm(request.POST)
         if form.is_valid():
+            # Guardamos el usuario y lo logueamos automáticamente
             user = form.save()
             login(request, user)
             messages.success(request, f'¡Bienvenido, {user.username}! Cuenta creada correctamente.')

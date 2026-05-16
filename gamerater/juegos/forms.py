@@ -2,6 +2,7 @@ from django import forms
 from .models import Videojuego, Calificacion, Comentario
 
 
+# Formulario para crear y editar videojuegos
 class VideojuegoForm(forms.ModelForm):
     class Meta:
         model = Videojuego
@@ -14,6 +15,7 @@ class VideojuegoForm(forms.ModelForm):
         }
 
 
+# Formulario para calificar un videojuego
 class CalificacionForm(forms.ModelForm):
     class Meta:
         model = Calificacion
@@ -28,6 +30,7 @@ class CalificacionForm(forms.ModelForm):
         }
 
 
+# Formulario para dejar un comentario en un videojuego
 class ComentarioForm(forms.ModelForm):
     class Meta:
         model = Comentario
@@ -40,6 +43,7 @@ class ComentarioForm(forms.ModelForm):
         }
 
 
+# Formulario de búsqueda para filtrar videojuegos
 class BusquedaForm(forms.Form):
     q = forms.CharField(
         required=False,

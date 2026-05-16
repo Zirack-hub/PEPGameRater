@@ -1,14 +1,16 @@
 from pathlib import Path
-import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-cambia-esta-clave-en-produccion-por-una-segura'
+# Clave secreta
+SECRET_KEY = 'WlY4UbtBvSNV4RvxVsNwmOUr4CXZp_Ze7hKgsI4_BR8eTifHtF0AIedEk-Sa8G2bmbE'
 
 DEBUG = True
 
+# Dominios permitidos
 ALLOWED_HOSTS = ['*']
 
+# Aplicaciones instaladas
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -16,6 +18,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Nuestras apps
     'juegos',
     'usuarios',
 ]
@@ -32,6 +35,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'gamerater.urls'
 
+# Configuración de los templates
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -50,6 +54,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'gamerater.wsgi.application'
 
+# Base de datos SQLite para desarrollo
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -57,6 +62,7 @@ DATABASES = {
     }
 }
 
+# Validadores de contraseña
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -64,23 +70,24 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+# Idioma y zona horaria
 LANGUAGE_CODE = 'es-es'
 TIME_ZONE = 'Europe/Madrid'
 USE_I18N = True
 USE_TZ = True
 
-# Archivos estáticos
+# Configuración de archivos estáticos (CSS, JS...)
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Archivos de media (imágenes subidas)
+# Configuración de archivos de media (imágenes subidas por usuarios)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Redirecciones de autenticación
+# Redirecciones del sistema de autenticación
 LOGIN_URL = '/usuarios/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'

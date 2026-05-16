@@ -1,6 +1,7 @@
 from django.db import migrations
 
 
+# Lista de géneros 
 GENEROS = [
     ("Acción",          "Juegos con combate rápido y reflejos como protagonistas."),
     ("Aventura",        "Juegos centrados en exploración e historia."),
@@ -20,21 +21,25 @@ GENEROS = [
 ]
 
 
+# Función que inserta los géneros en la base de datos
 def insertar_generos(apps, schema_editor):
     Genero = apps.get_model('juegos', 'Genero')
     for nombre, descripcion in GENEROS:
         Genero.objects.create(nombre=nombre, descripcion=descripcion)
 
 
+# Función inversa para deshacer la migración si hace falta
 def eliminar_generos(apps, schema_editor):
     Genero = apps.get_model('juegos', 'Genero')
     Genero.objects.filter(nombre__in=[g[0] for g in GENEROS]).delete()
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
         ('juegos', '0001_initial'),
     ]
+
     operations = [
         migrations.RunPython(insertar_generos, eliminar_generos),
     ]

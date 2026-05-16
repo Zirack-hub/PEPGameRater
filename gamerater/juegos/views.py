@@ -1,4 +1,7 @@
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib import messages
+from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.db.models import Q
 from .models import Videojuego, Calificacion, Comentario
@@ -25,6 +28,7 @@ class VideojuegoListView(ListView):
         return context
 
 class VideojuegoDetailView(DetailView):
+    """Muestra el detalle de un videojuego con calificaciones y comentarios."""
     model = Videojuego
     template_name = 'juegos/detalle.html'
     context_object_name = 'juego'
@@ -32,20 +36,71 @@ class VideojuegoDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         juego = self.get_object()
+
+        # Formularios para calificación y comentario
         context['form_calificacion'] = CalificacionForm()
         context['form_comentario'] = ComentarioForm()
         context['calificaciones'] = juego.calificaciones.select_related('usuario')
         context['comentarios'] = juego.comentarios.select_related('autor')
-        context['ya_califico'] = False
+
+        # Comprobar si el usuario ya calificó este juego
+        if self.request.user.is_authenticated:
+            context['ya_califico'] = juego.calificaciones.filter(
+                usuario=self.request.user
+            ).exists()
+        else:
+            context['ya_califico'] = False
+
         return context
 
-class VideojuegoCreateView(CreateView):
+    def post(self, request, *args, **kwargs):
+        """Procesa el envío de calificaciones y comentarios desde la vista detalle."""
+        if not request.user.is_authenticated:
+            messages.error(request, 'Debes iniciar sesión para participar.')
+            return redirect('usuarios:login')
+
+        juego = self.get_object()
+        accion = request.POST.get('accion')
+
+        if accion == 'calificar':
+            # Comprobar que no ha calificado ya
+            if juego.calificaciones.filter(usuario=request.user).exists():
+                messages.warning(request, 'Ya has calificado este juego.')
+                return redirect('juegos:detalle', pk=juego.pk)
+
+            form = CalificacionForm(request.POST)
+            if form.is_valid():
+                calificacion = form.save(commit=False)
+                calificacion.videojuego = juego
+                calificacion.usuario = request.user
+                calificacion.save()
+                messages.success(request, '¡Calificación enviada correctamente!')
+            else:
+                messages.error(request, 'Error en el formulario de calificación.')
+
+        elif accion == 'comentar':
+            form = ComentarioForm(request.POST)
+            if form.is_valid():
+                comentario = form.save(commit=False)
+                comentario.videojuego = juego
+                comentario.autor = request.user
+                comentario.save()
+                messages.success(request, 'Comentario añadido.')
+            else:
+                messages.error(request, 'Error en el formulario de comentario.')
+
+        return redirect('juegos:detalle', pk=juego.pk)
+
+
+class VideojuegoCreateView(LoginRequiredMixin, CreateView):
+    """Formulario para añadir un nuevo videojuego."""
     model = Videojuego
     form_class = VideojuegoForm
     template_name = 'juegos/formulario.html'
 
     def form_valid(self, form):
         form.instance.autor = self.request.user
+        messages.success(self.request, '¡Videojuego añadido correctamente!')
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
@@ -54,10 +109,25 @@ class VideojuegoCreateView(CreateView):
         context['boton_texto'] = 'Añadir'
         return context
 
-class VideojuegoUpdateView(UpdateView):
+
+class VideojuegoUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """Formulario para editar un videojuego existente."""
     model = Videojuego
     form_class = VideojuegoForm
     template_name = 'juegos/formulario.html'
+
+    def test_func(self):
+        """Solo el autor o staff puede editar."""
+        juego = self.get_object()
+        return self.request.user == juego.autor or self.request.user.is_staff
+
+    def handle_no_permission(self):
+        messages.error(self.request, 'No tienes permiso para editar este videojuego.')
+        return redirect('juegos:lista')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Videojuego actualizado correctamente.')
+        return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -65,8 +135,22 @@ class VideojuegoUpdateView(UpdateView):
         context['boton_texto'] = 'Guardar cambios'
         return context
 
-class VideojuegoDeleteView(DeleteView):
+
+class VideojuegoDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """Confirmación y borrado de un videojuego."""
     model = Videojuego
     template_name = 'juegos/confirmar_borrado.html'
     success_url = reverse_lazy('juegos:lista')
     context_object_name = 'juego'
+
+    def test_func(self):
+        juego = self.get_object()
+        return self.request.user == juego.autor or self.request.user.is_staff
+
+    def handle_no_permission(self):
+        messages.error(self.request, 'No tienes permiso para eliminar este videojuego.')
+        return redirect('juegos:lista')
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Videojuego eliminado.')
+        return super().form_valid(form)

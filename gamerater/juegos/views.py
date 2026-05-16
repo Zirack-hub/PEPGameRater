@@ -4,10 +4,13 @@ from django.contrib import messages
 from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.db.models import Q
+
 from .models import Videojuego, Calificacion, Comentario
 from .forms import VideojuegoForm, CalificacionForm, ComentarioForm
 
+
 class VideojuegoListView(ListView):
+    """Muestra el catálogo completo de videojuegos con búsqueda."""
     model = Videojuego
     template_name = 'juegos/lista.html'
     context_object_name = 'juegos'
@@ -26,6 +29,7 @@ class VideojuegoListView(ListView):
         context = super().get_context_data(**kwargs)
         context['busqueda'] = self.request.GET.get('q', '')
         return context
+
 
 class VideojuegoDetailView(DetailView):
     """Muestra el detalle de un videojuego con calificaciones y comentarios."""
@@ -154,3 +158,31 @@ class VideojuegoDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def form_valid(self, form):
         messages.success(self.request, 'Videojuego eliminado.')
         return super().form_valid(form)
+
+
+def borrar_calificacion(request, pk):
+    """Elimina la propia calificación del usuario en un juego."""
+    calificacion = get_object_or_404(Calificacion, pk=pk)
+    juego_pk = calificacion.videojuego.pk
+
+    if request.user == calificacion.usuario or request.user.is_staff:
+        calificacion.delete()
+        messages.success(request, 'Calificación eliminada.')
+    else:
+        messages.error(request, 'No puedes eliminar esta calificación.')
+
+    return redirect('juegos:detalle', pk=juego_pk)
+
+
+def borrar_comentario(request, pk):
+    """Elimina un comentario propio."""
+    comentario = get_object_or_404(Comentario, pk=pk)
+    juego_pk = comentario.videojuego.pk
+
+    if request.user == comentario.autor or request.user.is_staff:
+        comentario.delete()
+        messages.success(request, 'Comentario eliminado.')
+    else:
+        messages.error(request, 'No puedes eliminar este comentario.')
+
+    return redirect('juegos:detalle', pk=juego_pk)
